@@ -140,36 +140,50 @@ Slider.register_event_type('on_change')
 
 class GUI(pyglet.window.Window):
     GUI_WIDTH = 400
-    GUI_HEIGHT = 40
     GUI_PADDING = 40
     GUI_BUTTON_HEIGHT = 40
+    DRAWING_PADDING = 20
 
     def __init__(self, hammock):
         super(GUI, self).__init__(caption='Hammock Calculator',
                                            visible=False,
                                            resizable=True)
+        self.hammock = hammock
 
-        self.play_pause_button = TextButton(self)
-        self.play_pause_button.x = self.GUI_PADDING
-        self.play_pause_button.y = self.GUI_PADDING
-        self.play_pause_button.height = self.GUI_BUTTON_HEIGHT
-        self.play_pause_button.width = 405
-        self.play_pause_button.text = "Whatever"
-        
-        #self.play_pause_button.on_press = hammock.print_results()
+        width = self.DRAWING_PADDING*2+self.hammock.max_width
+
+
+        self.print_result_button = TextButton(self)
+        self.print_result_button.x = self.GUI_PADDING
+        self.print_result_button.y = self.GUI_PADDING
+        self.print_result_button.height = self.GUI_BUTTON_HEIGHT
+        self.print_result_button.width = width-2*self.GUI_PADDING
+        self.print_result_button.text = "Whatever"
+
+        self.print_result_button.on_press = hammock.print_results
         
         self.slider = Slider(self)
+        self.slider.width = width-2*self.GUI_PADDING
         self.slider.push_handlers(self)
         self.slider.x = self.GUI_PADDING
         self.slider.y = self.GUI_PADDING * 2 + self.GUI_BUTTON_HEIGHT
         self.slider.min = 0.
-        self.slider.max = 600
+        self.slider.max = 4#width-2*self.GUI_PADDING
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self.controls = [
-                self.play_pause_button,
+                self.print_result_button,
                 self.slider
                 ]
+        self.GUI_HEIGHT = self.GUI_PADDING
+        for control in self.controls:
+            self.GUI_HEIGHT += control.height
+            self.GUI_HEIGHT += self.GUI_PADDING
+        self.hammock.y_offset = self.GUI_HEIGHT
+        self.hammock.x_offset =  self.DRAWING_PADDING
+
+        height = self.DRAWING_PADDING*2+self.hammock.max_height+self.GUI_HEIGHT
+        self.set_size(width,height)
 
     def on_mouse_press(self, x, y, button, modifiers):
         print(f"Mouse pressed")
@@ -178,21 +192,54 @@ class GUI(pyglet.window.Window):
                 print(f"Hit {control}")
                 control.on_mouse_press(x, y, button, modifiers)
 
+    def on_change(self, value):
+        self.hammock.slack = value
+
     def on_draw(self):
         self.clear()
         # GUI
-        self.slider.value = 60
+        pyglet.gl.glLineWidth(2)
+        self.slider.value = self.hammock.slack
         for control in self.controls:
             print(f"drawing {control}")
             control.draw()
-#hammock = Hammock()
-class HamMock:
-    def __init__(self):
-        pass
-    def print_results(self):
-        print("Results here")
-        
-hammock = HamMock()
-gui = GUI(hammock)
-gui.set_visible(True)
-pyglet.app.run()
+        self.hammock.draw()
+    def set_default_canvas_size(self):
+        """Make the window size just big enough to show the current
+        drawing and the GUI."""
+        width = self.GUI_WIDTH
+        height = self.GUI_HEIGHT
+        drawing_width, drawing_height = (400,400)
+        width = max(width, drawing_width)
+        height += drawing_height
+        self.set_size(int(width), int(height))
+
+    def on_resize(self, width, height):
+        """Position and size video image."""
+        super(GUI, self).on_resize(width, height)
+        self.slider.width = width - self.GUI_PADDING * 2
+
+        height -= self.GUI_HEIGHT
+        if height <= 0:
+            return
+
+        drawing_width, drawing_height = 400, 400
+        if drawing_height == 0 or drawing_height == 0:
+            return
+        display_aspect = width / float(height)
+        drawing_aspect = drawing_width / float(drawing_height)
+        if drawing_aspect > display_aspect:
+            self.drawing_width = width
+            self.drawing_height = width / drawing_aspect
+        else:
+            self.drawing_height = height
+            self.drawing_width = height * drawing_aspect
+        self.drawing_x = (width - self.drawing_width) / 2
+        self.drawing_y = (height - self.drawing_height) / 2 + self.GUI_HEIGHT
+
+if __name__ == "__main__":
+    hammock = Hammock()
+    gui = GUI(hammock)
+    gui.set_visible(True)
+    gui.set_default_canvas_size()
+    pyglet.app.run()

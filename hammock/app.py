@@ -18,8 +18,6 @@ def redraw(window, hammock):
     window.clear()
     hammock.slack = hammock.slack + 0.1
     print(f"Slack {hammock.slack}")
-    hammock.calculate_shape()
-    hammock.calculate_drawing_points()
     hammock.draw()
     hammock.print_results()
 
