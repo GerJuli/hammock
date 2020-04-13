@@ -1,2 +1,3 @@
 pyglet
 numpy
+-e git://github.com/GerJuli/printcolor.git

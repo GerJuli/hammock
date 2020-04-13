@@ -1,6 +1,7 @@
 import pyglet
 import numpy as np
 from pyglet.gl import GL_LINES
+from printcolor.colors import stdout_colors as colors
 # %%
 
 class Beam():
@@ -112,6 +113,7 @@ class Hammock():
                              )
 
     def calculate_stress(self):
+        unsafe = False
         safety_coefficient = 1.2
         human_mass = 100
         gravity = 9.81
@@ -144,8 +146,11 @@ class Hammock():
         print(f"Safety coefficient side: {safety_coefficient_side:.3}")
 
         if safety_coefficient > safety_coefficient_side:
+            unsafe = True
             print(
-                f"Warning: safty coefficient on the side is too low: {safety_coefficient_side} (< {safety_coefficient})")
+                f"{colors.WARNING}Warning: safty coefficient on the side is too low: {safety_coefficient_side} (< {safety_coefficient}){colors.ENDC}")
+        if not(unsafe):
+            print(f"{colors.OKGREEN}Everything seems safe! {colors.ENDC}")
 
     def print_results(self):
         print(f"Bottom safety: {self.bottom_safety}")
