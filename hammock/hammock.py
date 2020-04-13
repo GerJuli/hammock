@@ -10,16 +10,21 @@ class Hammock():
     max_height = 400
     max_width = 400
 
-    def __init__(self, upper_length = 4, slack = 1):
+    max_slack = 3
+    max_beta = 90
+
+    def __init__(self, upper_length = 4, slack = 1, wood_strength = 10):
+        """ All units in m, wood strength = wood_with = wood_height"""
         self.x_offset = 0
         self.y_offset = 0
         self.upper_length = upper_length
         self.slack = slack
+        self.wood_strength = wood_strength
+        self.beta = 45
+        self.height = 1.6
         self.draw()
 
     def _calculate_shape(self):
-        self.height = 1.6
-        self.beta = 45
         self.gamma = np.rad2deg(np.arctan(self.slack/self.upper_length))
         self.delta = self.gamma + self.beta
         self.alpha = 180 - self.delta 

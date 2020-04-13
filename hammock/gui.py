@@ -84,17 +84,14 @@ class Slider(Control):
     def __init__(self, *args, **kwargs):
         super(Slider, self).__init__(*args, **kwargs)
         self.seek_value = None
-
+        self.value_name = ""
     def draw(self):
-        print("Drawing slider")
         center_y = self.y + self.height / 2
         draw_rect(self.x, center_y - self.GROOVE_HEIGHT / 2,
                   self.width, self.GROOVE_HEIGHT)
         pos = self.x + self.value * self.width / (self.max - self.min)
-        #pos = 20*self.width / (self.max - self.min)
         draw_rect(pos - self.THUMB_WIDTH / 2, center_y - self.THUMB_HEIGHT / 2,
                   self.THUMB_WIDTH, self.THUMB_HEIGHT)
-        print("Finished drawing slider")
 
     def coordinate_to_value(self, x):
         value = float(x - self.x) / self.width * (self.max - self.min) + self.min
@@ -104,7 +101,7 @@ class Slider(Control):
         value = self.coordinate_to_value(x)
         self.capture_events()
         self.dispatch_event('on_begin_scroll')
-        self.dispatch_event('on_change', value)
+        self.dispatch_event('on_change', self.value_name, value)
         pyglet.clock.schedule_once(self.seek_request, self.RESPONSIVNESS)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
@@ -129,7 +126,7 @@ class Slider(Control):
 
     def seek_request(self, dt):
         if self.seek_value is not None:
-            self.dispatch_event('on_change', self.seek_value)
+            self.dispatch_event('on_change', self.value_name, self.seek_value)
             self.seek_value = None
 
 
@@ -158,22 +155,33 @@ class GUI(pyglet.window.Window):
         self.print_result_button.y = self.GUI_PADDING
         self.print_result_button.height = self.GUI_BUTTON_HEIGHT
         self.print_result_button.width = width-2*self.GUI_PADDING
-        self.print_result_button.text = "Whatever"
-
+        self.print_result_button.text = "Print calculation results"
         self.print_result_button.on_press = hammock.print_results
-        
-        self.slider = Slider(self)
-        self.slider.width = width-2*self.GUI_PADDING
-        self.slider.push_handlers(self)
-        self.slider.x = self.GUI_PADDING
-        self.slider.y = self.GUI_PADDING * 2 + self.GUI_BUTTON_HEIGHT
-        self.slider.min = 0.
-        self.slider.max = 4#width-2*self.GUI_PADDING
+
+        self.slack_slider = Slider(self)
+        self.slack_slider.value_name = "slack"
+        self.slack_slider.width = width-2*self.GUI_PADDING
+        self.slack_slider.push_handlers(self)
+        self.slack_slider.x = self.GUI_PADDING
+        self.slack_slider.y = self.GUI_PADDING * 2 + self.GUI_BUTTON_HEIGHT
+        self.slack_slider.min = 0.
+        self.slack_slider.max = self.hammock.max_slack
+
+        self.beta_slider = Slider(self)
+        self.beta_slider.value_name = "beta"
+        self.beta_slider.width = width-2*self.GUI_PADDING
+        self.beta_slider.push_handlers(self)
+        self.beta_slider.x = self.GUI_PADDING
+        self.beta_slider.y = self.GUI_PADDING * 2 + self.GUI_BUTTON_HEIGHT*2
+        self.beta_slider.min = 0.
+        self.beta_slider.max = self.hammock.max_beta
+
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self.controls = [
                 self.print_result_button,
-                self.slider
+                self.slack_slider,
+                self.beta_slider
                 ]
         self.GUI_HEIGHT = self.GUI_PADDING
         for control in self.controls:
@@ -186,38 +194,31 @@ class GUI(pyglet.window.Window):
         self.set_size(width,height)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        print(f"Mouse pressed")
         for control in self.controls:
             if control.hit_test(x, y):
-                print(f"Hit {control}")
                 control.on_mouse_press(x, y, button, modifiers)
 
-    def on_change(self, value):
-        self.hammock.slack = value
+    def on_change(self, value_name, value):
+        if value_name == "slack":
+            self.hammock.slack = value
+        elif value_name == "beta":
+            self.hammock.beta = value
 
     def on_draw(self):
         self.clear()
         # GUI
         pyglet.gl.glLineWidth(2)
-        self.slider.value = self.hammock.slack
+        self.slack_slider.value = self.hammock.slack
+        self.beta_slider.value = self.hammock.beta
         for control in self.controls:
-            print(f"drawing {control}")
             control.draw()
         self.hammock.draw()
-    def set_default_canvas_size(self):
-        """Make the window size just big enough to show the current
-        drawing and the GUI."""
-        width = self.GUI_WIDTH
-        height = self.GUI_HEIGHT
-        drawing_width, drawing_height = (400,400)
-        width = max(width, drawing_width)
-        height += drawing_height
-        self.set_size(int(width), int(height))
 
     def on_resize(self, width, height):
         """Position and size video image."""
         super(GUI, self).on_resize(width, height)
-        self.slider.width = width - self.GUI_PADDING * 2
+        self.slack_slider.width = width - self.GUI_PADDING * 2
+        self.beta_slider.width = width - self.GUI_PADDING * 2
 
         height -= self.GUI_HEIGHT
         if height <= 0:
@@ -241,5 +242,4 @@ if __name__ == "__main__":
     hammock = Hammock()
     gui = GUI(hammock)
     gui.set_visible(True)
-    gui.set_default_canvas_size()
     pyglet.app.run()
