@@ -1,8 +1,45 @@
 import pyglet
 import numpy as np
-from pyglet.gl import GL_LINES, glClear, GL_COLOR_BUFFER_BIT, glLoadIdentity
+from pyglet.gl import GL_LINES
 # %%
 
+class Beam():
+    def __init__(self, width, height, strength = 30):
+        """
+        Rectangular beam with fixed on one side so that neutral fiber is at h/2
+         _ _ _w_ _ _
+        |           |
+        |           |
+        |           |
+  _ _ _ |_ _ _ _ _ _|_ _ _ _ neutral fiber
+        |           | h
+        |           |
+        |           |
+        |_ _ _ _ _ _|
+              ^
+              |
+              | F
+              |
+
+        Width and height in m, stremgt  in N/mm²
+        Standard value for Oak and Spruce wood ~30 (DIN EN 338:2010-2)
+        """
+        self.width = width
+        self.height = height
+        self.strength = 30
+
+    def __str__(self):
+         return f"{width}x{height} beam with strength of 30N/mm²"
+
+    def calc_area_moment_of_interia(self):
+        area_moment_of_interia = (self.width*1000)*(self.height*1000)**3/12
+        return area_moment_of_interia
+
+    def calc_section_modulus(self):
+        area_moment_of_interia = self.calc_area_moment_of_interia()
+        outer_fibre_distance = 0.5*self.height*1000
+        section_modulus = area_moment_of_interia/outer_fibre_distance
+        return section_modulus
 
 class Hammock():
 
@@ -12,13 +49,14 @@ class Hammock():
     max_slack = 3
     max_beta = 90
 
-    def __init__(self, upper_length=4, slack=1, wood_strength=10):
-        """ All units in m, wood strength = wood_with = wood_height"""
+    def __init__(self, upper_length=4, slack=1):
+        """ All units in m"""
+
+        self.side_beam = Beam(width=0.1, height=0.1, strength=30)
         self.x_offset = 0
         self.y_offset = 0
         self.upper_length = upper_length
         self.slack = slack
-        self.wood_strength = wood_strength
         self.beta = 45
         self.height = 1.6
         self.draw()
@@ -77,8 +115,6 @@ class Hammock():
         safety_coefficient = 1.2
         human_mass = 100
         gravity = 9.81
-        """Strength properties are given in N/mm². Oak and Spruce wood ~30"""
-        wood_strength = 30
 
         """Downward force of a human, sitting in the middle of the hammock"""
         Fh = human_mass*gravity
@@ -96,9 +132,7 @@ class Hammock():
         Mb = Fb*self.side_length
         print(f"Mb: {Mb:.5}Nm")
 
-        area_moment_of_interia_side = (self.wood_strength*1000)**4/12
-        outer_fibre_distance = 0.5*self.wood_strength*1000
-        section_modulus = area_moment_of_interia_side/outer_fibre_distance
+        section_modulus = self.side_beam.calc_section_modulus()
         print(f"Section Modulus: {section_modulus/1000:.5}kmm³")
 
         """Bending Stress"""
@@ -106,7 +140,7 @@ class Hammock():
         print(f"Bending Stress on side part: {bending_stress_side:.3}N/mm²")
 
         """Safety coefficient side"""
-        safety_coefficient_side = wood_strength/bending_stress_side
+        safety_coefficient_side = self.side_beam.strength/bending_stress_side
         print(f"Safety coefficient side: {safety_coefficient_side:.3}")
 
         if safety_coefficient > safety_coefficient_side:
@@ -118,3 +152,4 @@ class Hammock():
         print(f"Bottom piece: {self.bottom_length}")
         print(f"Side piece length: {self.side_length}")
         print(f"Angle: {self.alpha}")
+        self.calculate_stress()
