@@ -3,6 +3,7 @@ import pyglet
 from pyglet.gl import *
 import weakref
 
+
 def draw_rect(x, y, width, height):
     glBegin(GL_LINE_LOOP)
     glVertex2f(x, y)
@@ -61,7 +62,8 @@ Button.register_event_type('on_press')
 class TextButton(Button):
     def __init__(self, *args, **kwargs):
         super(TextButton, self).__init__(*args, **kwargs)
-        self._text = pyglet.text.Label('', anchor_x='center', anchor_y='center')
+        self._text = pyglet.text.Label(
+            '', anchor_x='center', anchor_y='center')
 
     def draw_label(self):
         self._text.x = self.x + self.width / 2
@@ -85,6 +87,7 @@ class Slider(Control):
         super(Slider, self).__init__(*args, **kwargs)
         self.seek_value = None
         self.value_name = ""
+
     def draw(self):
         center_y = self.y + self.height / 2
         draw_rect(self.x, center_y - self.GROOVE_HEIGHT / 2,
@@ -94,7 +97,8 @@ class Slider(Control):
                   self.THUMB_WIDTH, self.THUMB_HEIGHT)
 
     def coordinate_to_value(self, x):
-        value = float(x - self.x) / self.width * (self.max - self.min) + self.min
+        value = float(x - self.x) / self.width * \
+            (self.max - self.min) + self.min
         return value
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -106,8 +110,8 @@ class Slider(Control):
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         # On some platforms, on_mouse_drag is triggered with a high frequency.
-        # Seeking takes some time (~200ms). Asking for a seek at every 
-        # on_mouse_drag event would starve the event loop. 
+        # Seeking takes some time (~200ms). Asking for a seek at every
+        # on_mouse_drag event would starve the event loop.
         # Instead we only record the last mouse position and we
         # schedule seek_request to dispatch the on_change event in the future.
         # This will allow subsequent on_mouse_drag to change the seek_value
@@ -143,12 +147,11 @@ class GUI(pyglet.window.Window):
 
     def __init__(self, hammock):
         super(GUI, self).__init__(caption='Hammock Calculator',
-                                           visible=False,
-                                           resizable=True)
+                                  visible=False,
+                                  resizable=True)
         self.hammock = hammock
 
         width = self.DRAWING_PADDING*2+self.hammock.max_width
-
 
         self.print_result_button = TextButton(self)
         self.print_result_button.x = self.GUI_PADDING
@@ -179,19 +182,19 @@ class GUI(pyglet.window.Window):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         self.controls = [
-                self.print_result_button,
-                self.slack_slider,
-                self.beta_slider
-                ]
+            self.print_result_button,
+            self.slack_slider,
+            self.beta_slider
+        ]
         self.GUI_HEIGHT = self.GUI_PADDING
         for control in self.controls:
             self.GUI_HEIGHT += control.height
             self.GUI_HEIGHT += self.GUI_PADDING
         self.hammock.y_offset = self.GUI_HEIGHT
-        self.hammock.x_offset =  self.DRAWING_PADDING
+        self.hammock.x_offset = self.DRAWING_PADDING
 
         height = self.DRAWING_PADDING*2+self.hammock.max_height+self.GUI_HEIGHT
-        self.set_size(width,height)
+        self.set_size(width, height)
 
     def on_mouse_press(self, x, y, button, modifiers):
         for control in self.controls:
@@ -237,6 +240,7 @@ class GUI(pyglet.window.Window):
             self.drawing_width = height * drawing_aspect
         self.drawing_x = (width - self.drawing_width) / 2
         self.drawing_y = (height - self.drawing_height) / 2 + self.GUI_HEIGHT
+
 
 if __name__ == "__main__":
     hammock = Hammock()

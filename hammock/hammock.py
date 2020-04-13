@@ -6,14 +6,13 @@ from pyglet.gl import GL_LINES, glClear, GL_COLOR_BUFFER_BIT, glLoadIdentity
 
 class Hammock():
 
-
     max_height = 400
     max_width = 400
 
     max_slack = 3
     max_beta = 90
 
-    def __init__(self, upper_length = 4, slack = 1, wood_strength = 10):
+    def __init__(self, upper_length=4, slack=1, wood_strength=10):
         """ All units in m, wood strength = wood_with = wood_height"""
         self.x_offset = 0
         self.y_offset = 0
@@ -27,7 +26,7 @@ class Hammock():
     def _calculate_shape(self):
         self.gamma = np.rad2deg(np.arctan(self.slack/self.upper_length))
         self.delta = self.gamma + self.beta
-        self.alpha = 180 - self.delta 
+        self.alpha = 180 - self.delta
         self.epsilon = self.alpha-90
         self.overhang = self.height*np.tan(np.deg2rad(self.epsilon))
         self.bottom_length = self.upper_length-2*self.overhang
@@ -57,30 +56,28 @@ class Hammock():
         self._calculate_shape()
         self._calculate_drawing_points()
         pyglet.gl.glLineWidth(10)
-#        glClear(GL_COLOR_BUFFER_BIT)
-#        glLoadIdentity()
         main_batch = pyglet.graphics.Batch()
-        pyglet.graphics.draw(4, GL_LINES, 
-                ("v2f", (0, 0, 0, 5, self.Bx, self.By, self.Ax, self.Ay))
-            )
-        pyglet.graphics.draw(4, GL_LINES, 
-                ("v2f", (0, 0, 0, 5, self.Dx, self.Dy, self.Ax, self.Ay))
-            )
-        pyglet.graphics.draw(4, GL_LINES, 
-                ("v2f", (0, 0, 0, 5, self.Dx, self.Dy, self.Cx, self.Cy))
-            )
-        pyglet.graphics.draw(4, GL_LINES, 
-                ("v2f", (0, 0, 0, 5, self.Cx, self.Cy, self.Ex, self.Ey))
-            )
-        pyglet.graphics.draw(4, GL_LINES, 
-                ("v2f", (0, 0, 0, 5, self.Bx, self.By, self.Ex, self.Ey))
-            )
+        pyglet.graphics.draw(4, GL_LINES,
+                             ("v2f", (0, 0, 0, 5, self.Bx, self.By, self.Ax, self.Ay))
+                             )
+        pyglet.graphics.draw(4, GL_LINES,
+                             ("v2f", (0, 0, 0, 5, self.Dx, self.Dy, self.Ax, self.Ay))
+                             )
+        pyglet.graphics.draw(4, GL_LINES,
+                             ("v2f", (0, 0, 0, 5, self.Dx, self.Dy, self.Cx, self.Cy))
+                             )
+        pyglet.graphics.draw(4, GL_LINES,
+                             ("v2f", (0, 0, 0, 5, self.Cx, self.Cy, self.Ex, self.Ey))
+                             )
+        pyglet.graphics.draw(4, GL_LINES,
+                             ("v2f", (0, 0, 0, 5, self.Bx, self.By, self.Ex, self.Ey))
+                             )
 
     def calculate_stress(self):
         safety_coefficient = 1.2
         human_mass = 100
         gravity = 9.81
-        """Strength properties are given in N/mm² Oak and Spruce wood ~30"""
+        """Strength properties are given in N/mm². Oak and Spruce wood ~30"""
         wood_strength = 30
 
         """Downward force of a human, sitting in the middle of the hammock"""
@@ -113,7 +110,8 @@ class Hammock():
         print(f"Safety coefficient side: {safety_coefficient_side:.3}")
 
         if safety_coefficient > safety_coefficient_side:
-            print(f"Warning: safty coefficient side is {safety_coefficient_side} (< {safety_coefficient})")
+            print(
+                f"Warning: safty coefficient on the side is too low: {safety_coefficient_side} (< {safety_coefficient})")
 
     def print_results(self):
         print(f"Bottom safety: {self.bottom_safety}")
