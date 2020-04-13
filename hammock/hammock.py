@@ -76,6 +76,45 @@ class Hammock():
                 ("v2f", (0, 0, 0, 5, self.Bx, self.By, self.Ex, self.Ey))
             )
 
+    def calculate_stress(self):
+        safety_coefficient = 1.2
+        human_mass = 100
+        gravity = 9.81
+        """Strength properties are given in N/mm² Oak and Spruce wood ~30"""
+        wood_strength = 30
+
+        """Downward force of a human, sitting in the middle of the hammock"""
+        Fh = human_mass*gravity
+        print(f"Fh: {Fh}N")
+
+        """Force of one rope (Newton)"""
+        Fr = 0.5*Fh/(np.sin(np.deg2rad(self.gamma)))
+        print(f"Fr: {Fr}N")
+
+        """Fb: Force that bends the side part inwards"""
+        Fb = np.cos(np.deg2rad(self.gamma))*Fr
+        print(f"Fb: {Fb}N")
+
+        """Momentum that bends the side part inside N*m"""
+        Mb = Fb*self.side_length
+        print(f"Mb: {Mb:.5}Nm")
+
+        area_moment_of_interia_side = (self.wood_strength*1000)**4/12
+        outer_fibre_distance = 0.5*self.wood_strength*1000
+        section_modulus = area_moment_of_interia_side/outer_fibre_distance
+        print(f"Section Modulus: {section_modulus/1000:.5}kmm³")
+
+        """Bending Stress"""
+        bending_stress_side = Mb*1000/section_modulus
+        print(f"Bending Stress on side part: {bending_stress_side:.3}N/mm²")
+
+        """Safety coefficient side"""
+        safety_coefficient_side = wood_strength/bending_stress_side
+        print(f"Safety coefficient side: {safety_coefficient_side:.3}")
+
+        if safety_coefficient > safety_coefficient_side:
+            print(f"Warning: safty coefficient side is {safety_coefficient_side} (< {safety_coefficient})")
+
     def print_results(self):
         print(f"Bottom safety: {self.bottom_safety}")
         print(f"Bottom piece: {self.bottom_length}")
