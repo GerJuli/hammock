@@ -85,7 +85,7 @@ class Hammock():
         print(f"Fh: {Fh}N")
 
         """Force of one rope (Newton)"""
-        Fr = 0.5*Fh/(np.sin(np.deg2rad(self.gamma)))
+        Fr = 0.5*Fh/(np.sin(np.deg2rad(90-self.beta)))
         print(f"Fr: {Fr}N")
 
         """Fb: Force that bends the side part inwards"""
